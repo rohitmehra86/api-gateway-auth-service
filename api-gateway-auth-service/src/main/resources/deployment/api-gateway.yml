@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-app
+  labels:
+    app: api-gateway-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app : api-gateway-app
+  template:
+    metadata:
+      labels:
+        app: api-gateway-app
+    spec:
+      containers:
+      - name: api-gateway-app
+        image: devopspaxaris/api-gateway-service:0.0.1
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 9092
+        env:   # Setting Enviornmental Variables
+            - name: LIMS_URL   # Setting Database host address from configMap
+              value: http://lims-service-svc
+
+            - name: USER_MGNT_URL  # Setting Database username from Secret
+              value: http://user-service-svc
+              
+            - name: EMAIL_URL  # Setting Database username from Secret
+              value: http://email-service-svc
+              
+            - name: EUREKA_SERVER_URL  # Setting Service config URL
+              value: http://eureka-0.eureka.default.svc.cluster.local:8761/eureka
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name:  api-gateway-svc
+spec:
+  selector:
+    app:  api-gateway-app
+  ports:
+  - port:  80
+    targetPort:  9092
